@@ -6,6 +6,7 @@ import { Home } from './pages/home'
 import { Routes } from '#common/types'
 import type { HTTPException } from 'hono/http-exception'
 import { cors } from 'hono/cors'
+import { authMiddleware } from './middleware/auth'
 export class App {
   private app: OpenAPIHono
   constructor(routes: Routes[]) {
@@ -50,7 +51,7 @@ export class App {
       c.res.headers.set('X-Response-Time', `${end - start}ms`)
     })
 
-    // this.app.use(authMiddleware)
+    this.app.use(authMiddleware)
   }
 
   private initializeSwaggerUI(): void {
