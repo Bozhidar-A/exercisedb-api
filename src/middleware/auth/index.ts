@@ -1,4 +1,4 @@
-// import { Context, Next } from 'hono'
+import { Context, Next } from 'hono'
 
 // type Role = 'member' | 'moderator' | 'admin'
 
@@ -8,7 +8,7 @@
 //   admin: new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
 // }
 
-// const RESTRICTED_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+const RESTRICTED_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 // const VALID_ROLES = new Set(['member', 'moderator', 'admin'])
 
 // interface RouteConfig {
@@ -76,3 +76,33 @@
 //     return c.json({ success: false, error: 'Invalid token' }, 401)
 //   }
 // }
+
+export async function authMiddleware(c: Context, next: Next) {
+  // const { method, path } = c.req
+  const { method } = c.req
+  //   const currentEnv = process.env.NODE_ENV || 'development'
+
+  if (!RESTRICTED_METHODS.has(method)) return next()
+
+  const authorization = c.req.header('Authorization')
+
+  if (!authorization) {
+    return c.json({ success: false, error: 'No authorization header | unauthorized request' }, 401)
+  }
+  const authToken = authorization.split(' ')[1]
+
+  if (!authorization.startsWith('Bearer')) {
+    return c.json({ success: false, error: 'Invalid authorization header format. Format is "Bearer <token>".' }, 401)
+  }
+
+  try {
+    if (authToken !== process.env.API_TOKEN) {
+      return c.json({ success: false, error: 'Forbidden' }, 403)
+    }
+
+    await next()
+  } catch (error) {
+    console.error(error)
+    return c.json({ success: false, error: 'Invalid token' }, 401)
+  }
+}
