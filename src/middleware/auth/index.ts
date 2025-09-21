@@ -79,10 +79,10 @@ const RESTRICTED_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 export async function authMiddleware(c: Context, next: Next) {
   // const { method, path } = c.req
-  const { method } = c.req
+  // const { method } = c.req
   //   const currentEnv = process.env.NODE_ENV || 'development'
 
-  if (!RESTRICTED_METHODS.has(method)) return next()
+  if (RESTRICTED_METHODS.has(c.req.method)) return c.json({ success: false, error: 'Method not allowed' }, 405)
 
   const authorization = c.req.header('Authorization')
 
